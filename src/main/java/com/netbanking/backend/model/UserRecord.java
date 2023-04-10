@@ -15,9 +15,11 @@ public class UserRecord {
     @Id
     private UUID id;
     private String userName;
+    private String userEmail;
+    private String userPassword;
     private String accountNumber;
     private String accountType;
     private String accountBalance;
     private String accountStatus;
-    private Map<String, TransactionRecords> transactionRecords;
+    private Map<String, TransactionRecord> transactionRecords;
 }
