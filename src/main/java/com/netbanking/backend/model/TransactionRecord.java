@@ -18,6 +18,6 @@ public class TransactionRecord {
     private String transactionAmount;
     private String transactionStatus;
     private String transactionDescription;
-    private String transactionAccountNumber;
-    private String transactionAccountName;
+    private String transactionDestinationAccountNumber;
+    private String transactionSourceAccountNumber;
 }
