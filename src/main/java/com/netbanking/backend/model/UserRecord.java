@@ -5,15 +5,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Builder;
 import lombok.Data;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.Date;
+import java.util.List;
 
 @Document("userRecord")
 @Data
 @Builder
 public class UserRecord {
-    @Id
-    private UUID id;
+    // @Id
+    // private long id;
     private String userName;
     private String userEmail;
     private String userPassword;
@@ -21,5 +22,11 @@ public class UserRecord {
     private String accountType;
     private Integer accountBalance;
     private String accountStatus;
-    private Map<String, TransactionRecord> transactionRecords;
+    private Date accountCreationDate;
+    private String phone;
+    private String dob;
+    private String address;
+    private String ssn;
+    private String userToken;
+    private List<TransactionRecord> transactionRecords;
 }

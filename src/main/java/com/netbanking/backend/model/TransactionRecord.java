@@ -5,6 +5,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.Date;
 import java.util.UUID;
 
 @Document("transactionRecord")
@@ -13,7 +15,7 @@ import java.util.UUID;
 public class TransactionRecord {
     @Id
     private UUID transactionId;
-    private String transactionDateTime;
+    private Date transactionDateTime;
     private String transactionType;
     private Integer transactionAmount;
     private String transactionStatus;

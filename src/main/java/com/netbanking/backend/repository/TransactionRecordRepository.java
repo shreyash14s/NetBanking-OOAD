@@ -12,5 +12,5 @@ import java.util.List;
 public interface TransactionRecordRepository extends MongoRepository<TransactionRecord, String> {
 
     @Query("{transactionStatus:'?0'}")
-    List<TransactionRecord> findTransactionsWithPending(String transactionStatus);
+    List<TransactionRecord> findTransactionsWithStatus(String status);
 }

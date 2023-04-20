@@ -5,15 +5,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.Date;
 import java.util.UUID;
 
 @Document("logRecord")
 @Data
 @Builder
-
 public class LogsRecord {
     @Id
     private UUID id;
     private String description;
-    private String Time;
+    private Date Time;
 }
