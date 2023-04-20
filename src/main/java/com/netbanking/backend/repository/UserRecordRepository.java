@@ -12,6 +12,6 @@ public interface UserRecordRepository extends MongoRepository<UserRecord, String
     List<TransactionRecord> findTransactionRecordByAccountNumber(String accountNumber);
 
     @Query("{accountEmail:'?0', accountPassword:'?1'}")
-    UserRecord findUserRecordByAccountEmailAndPassword(String accountEmail, String accountPassword);
+    UserRecord findUserRecord(String accountEmail, String accountPassword);
 
 }

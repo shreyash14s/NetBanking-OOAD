@@ -19,7 +19,7 @@ public class UserRecord {
     private String userPassword;
     private String accountNumber;
     private String accountType;
-    private String accountBalance;
+    private Integer accountBalance;
     private String accountStatus;
     private Map<String, TransactionRecord> transactionRecords;
 }

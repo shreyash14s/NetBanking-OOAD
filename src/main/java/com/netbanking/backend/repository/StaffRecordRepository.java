@@ -7,5 +7,5 @@ import org.springframework.data.mongodb.repository.Query;
 
 public interface StaffRecordRepository extends MongoRepository<StaffRecord, String> {
     @Query("{staffEmail:'?0', staffPassword:'?1'}")
-    StaffRecord findStaffRecordByStaffEmailAndPassword(String staffEmail, String staffPassword);
+    StaffRecord findStaffRecord(String staffEmail, String staffPassword);
 }

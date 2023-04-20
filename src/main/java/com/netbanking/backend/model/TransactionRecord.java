@@ -15,7 +15,7 @@ public class TransactionRecord {
     private UUID transactionId;
     private String transactionDateTime;
     private String transactionType;
-    private String transactionAmount;
+    private Integer transactionAmount;
     private String transactionStatus;
     private String transactionDescription;
     private String transactionDestinationAccountNumber;
