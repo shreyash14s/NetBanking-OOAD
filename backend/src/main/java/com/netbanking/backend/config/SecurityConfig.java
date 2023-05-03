@@ -13,6 +13,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.netbanking.backend.security.AuthEntryPointJwt;
+import com.netbanking.backend.security.AuthTokenFilter;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -25,14 +29,30 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+	private AuthEntryPointJwt unauthorizedHandler;
+
+	@Bean
+	public AuthTokenFilter authenticationJwtTokenFilter() {
+		return new AuthTokenFilter();
+	}
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((authz) -> authz
+                .requestMatchers("/api/account/**").authenticated()
+                .requestMatchers("/api/transactions/**").authenticated()
                 .anyRequest().permitAll()
             )
             .csrf().disable()
             .httpBasic(withDefaults());
+
+        http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler);
+
+        http.addFilterBefore(authenticationJwtTokenFilter(),
+                UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

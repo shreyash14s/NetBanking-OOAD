@@ -1,10 +1,17 @@
 package com.netbanking.backend.controller;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.netbanking.backend.model.UserRecord;
@@ -13,19 +20,8 @@ import com.netbanking.backend.service.UserService;
 
 import ch.qos.logback.classic.Logger;
 
-class CreateAccountRequest {
-    public String email;
-    public String password;
-    public String name;
-}
-
-class CreateAccountResponse {
-    public String message;
-    public String status;
-}
-
 @RestController
-@RequestMapping("/account")
+@RequestMapping("/api/account")
 public class Account {
     
     @Autowired
@@ -33,25 +29,22 @@ public class Account {
 
     private Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(Account.class);
 
-    @PostMapping("/create")
-    public CreateAccountResponse createAccount(@RequestBody CreateAccountRequest request) {
-        logger.error("Creating account for " + request.email);
-        CreateAccountResponse response = new CreateAccountResponse();
-        if (userService.getUserByEmail(request.email) != null) {
-            response.message = "User already exists";
-            response.status = "error";
-            return response;
+    @GetMapping("/get")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public UserRecord getUserByToken() {
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        String username = userDetails.getUsername();
+
+        Optional<UserRecord> user_opt = userService.getUserByEmail(username);
+        if (user_opt.isEmpty()) {
+            logger.warn("User not found");
+            return null;
         }
-
-        userService.createUser(request.email, request.password, request.name);
-
-        response.message = "Account created successfully";
-        response.status = "success";
-        return response;
-    }
-
-    @GetMapping("/list")
-    public Iterable<UserRecord> getAllUsers() {
-        return userService.getAllUsers();
+        UserRecord user = user_opt.get();
+        user.setUserPassword("");
+        return user;
     }
 }

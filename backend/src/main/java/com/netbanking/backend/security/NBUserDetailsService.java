@@ -2,6 +2,7 @@ package com.netbanking.backend.security;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,10 +25,11 @@ public class NBUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserRecord user = userRepository.findUserByEmail(username);
-        if (user == null) {
+        Optional<UserRecord> opt_user = userRepository.findUserByEmail(username);
+        if (opt_user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
+        UserRecord user = opt_user.get();
         return new User(username, user.getUserPassword(),
                 true, true, true, true,
                 // null);

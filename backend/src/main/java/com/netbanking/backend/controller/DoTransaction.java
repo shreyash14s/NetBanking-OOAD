@@ -2,8 +2,12 @@
 package com.netbanking.backend.controller;
 
 import java.util.Date;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,13 +56,19 @@ public class DoTransaction {
     
     @PostMapping("/create")
     public TransactionResponse doTransaction(@RequestBody TransactionRequest request) {
-        UserRecord user = userService.getUserByToken(request.userToken);
-        if (user == null) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        String email = userDetails.getUsername();
+
+        Optional<UserRecord> user_opt = userService.getUserByEmail(email);
+        if (user_opt.isEmpty()) {
             TransactionResponse response = new TransactionResponse();
             response.message = "Invalid login details";
             response.status = "error";
             return response;
         }
+        UserRecord user = user_opt.get();
 
         int amount = 0;
         try {
@@ -75,13 +85,14 @@ public class DoTransaction {
         String destAccount = "";
 
         if (request.transactionType.equals("debit")) {
-            UserRecord receiver = userService.getUserByAccountNumber(request.accountNumber);
-            if (receiver == null) {
+            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.accountNumber);
+            if (receiver_opt.isEmpty()) {
                 TransactionResponse response = new TransactionResponse();
                 response.message = "Invalid account number";
                 response.status = "error";
                 return response;
             }
+            UserRecord receiver = receiver_opt.get();
             if (user.getAccountBalance() < amount) {
                 TransactionResponse response = new TransactionResponse();
                 response.message = "Insufficient funds";
@@ -122,7 +133,8 @@ public class DoTransaction {
         user.getTransactionRecords().add(transaction);
 
         if (request.transactionType.equals("debit") && !pending) {
-            UserRecord receiver = userService.getUserByAccountNumber(request.accountNumber);
+            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.accountNumber);
+            UserRecord receiver = receiver_opt.get();
             TransactionRecord transaction2 = TransactionRecord.builder()
                     .transactionDateTime(new Date())
                     .transactionType("credit")
