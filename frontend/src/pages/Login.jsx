@@ -1,4 +1,4 @@
-import { Form, Link, redirect } from "react-router-dom";
+import { Form, Link, redirect, useActionData } from "react-router-dom";
 
 export async function loginAction({ request }) {
     const formData = await request.formData();
@@ -15,7 +15,10 @@ export async function loginAction({ request }) {
     } else if (response.status != 200) {
         // Show the error page
         let errorMessage = await response.json();
-        throw Error(errorMessage.error || 'Failed to submitted the task');
+        if (errorMessage.error == 'Unauthorized') {
+            // throw Error(errorMessage.error);
+            return { error: errorMessage.error };
+        }
     }
 
     let resp = await response.json();
@@ -24,10 +27,13 @@ export async function loginAction({ request }) {
 }
 
 export function Login() {
+    const errors = useActionData();
+    const errorMessage = errors?.error;
     return (
         <>
             <h1>Net Banking</h1>
             <div className="flex flex-col gap-8 m-16">
+                <p className="text-red-500">{errorMessage}</p>
                 <Form action="/login" method="POST" className="flex flex-col gap-4">
                     <div className="flex flex-col items-start">
                         <label htmlFor="email" className="text-xs">Email</label>

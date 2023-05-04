@@ -23,7 +23,7 @@ export async function getUserDetails(token, controller) {
         }
     });
     if (response.status != 200) {
-        throw Error('Failed to fetch the user');
+        throw Error(response.statusText);
     }
     return await response.json();
 }

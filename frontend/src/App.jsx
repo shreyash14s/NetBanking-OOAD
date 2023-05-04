@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import { UserProvider } from './context/UserContext';
 import { Dashboard } from './pages/Dashboard';
 import { LoginRedirect } from './pages/LoginRedirect';
+import { TransactionsPage, transactionLoader } from './pages/TransactionPage';
 
 function Root() {
     const navigation = useNavigation();
@@ -45,6 +46,11 @@ const router = createBrowserRouter([
             {
                 path: "dashboard",
                 element: <Dashboard />
+            },
+            {
+                path: "transactions",
+                element: <TransactionsPage />,
+                loader: transactionLoader
             },
             {
                 path: "*",

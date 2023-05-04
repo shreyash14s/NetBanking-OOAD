@@ -5,10 +5,21 @@ import { useNavigate } from "react-router-dom";
 async function fetchAndSet(token, setUser, navigate, controller) {
     try {
         const user = await getUserDetails(token, controller);
+        console.log({ user })
+        user.token = token;
         setUser(user);
         console.log('User set and redirecting...', user);
-        navigate('/dashboard');
+        if (user.isAdmin) {
+            navigate('/admin');
+        } else {
+            navigate('/dashboard');
+        }
     } catch (error) {
+        if (error.name === 'AbortError') {
+            return;
+        }
+        localStorage.removeItem('token');
+        navigate('/login');
         console.error(error);
     }
 }
