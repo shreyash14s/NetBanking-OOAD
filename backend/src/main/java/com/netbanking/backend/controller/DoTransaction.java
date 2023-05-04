@@ -5,6 +5,9 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,7 +49,7 @@ public class DoTransaction {
     
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public TransactionResponse doTransaction(@RequestBody TransactionRequest request) {
+    public ResponseEntity<TransactionResponse> doTransaction(@RequestBody TransactionRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
@@ -55,31 +58,35 @@ public class DoTransaction {
         int amount = 0;
         try {
             amount = Integer.parseInt(request.transactionAmount);
+            if (amount <= 0) {
+                throw new NumberFormatException();
+            }
         } catch (NumberFormatException e) {
             TransactionResponse response = new TransactionResponse();
             response.message = "Invalid amount";
             response.status = "error";
-            return response;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         boolean pending = false;
         String desc = "";
         String destAccount = "";
+        String sourAccount = user.getAccountNumber();
 
-        if (request.transactionType.equals("debit")) {
+        if (request.transactionType.equals("transfer")) {
             Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.toAccountNumber);
             if (receiver_opt.isEmpty()) {
                 TransactionResponse response = new TransactionResponse();
                 response.message = "Invalid account number";
                 response.status = "error";
-                return response;
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
             UserRecord receiver = receiver_opt.get();
             if (user.getAccountBalance() < amount) {
                 TransactionResponse response = new TransactionResponse();
                 response.message = "Insufficient funds";
                 response.status = "error";
-                return response;
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
             if (amount > 500) {
@@ -92,14 +99,16 @@ public class DoTransaction {
             desc = "Debited " + amount + " from " + user.getAccountNumber() + " to " + receiver.getAccountNumber();
             destAccount = receiver.getAccountNumber();
         } else if (request.transactionType.equals("deposit")) {
-            user.setAccountBalance(user.getAccountBalance() + Integer.parseInt(request.transactionAmount));
+            user.setAccountBalance(user.getAccountBalance() + amount);
+            destAccount = user.getAccountNumber();
+            sourAccount = "";
 
             desc = "Deposited " + amount + " to " + user.getAccountNumber();
         } else {
             TransactionResponse response = new TransactionResponse();
             response.message = "Invalid transaction type";
             response.status = "error";
-            return response;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         TransactionRecord transaction = TransactionRecord.builder()
@@ -108,7 +117,7 @@ public class DoTransaction {
             .amount(amount)
             .status(pending ? "pending" : "success")
             .description(desc)
-            .sourceAccountNumber(user.getAccountNumber())
+            .sourceAccountNumber(sourAccount)
             .destinationAccountNumber(destAccount)
             .build();
         
@@ -116,20 +125,12 @@ public class DoTransaction {
         
         user.getTransactionRecords().add(transaction);
 
-        if (request.transactionType.equals("debit") && !pending) {
+        if (request.transactionType.equals("transfer") && !pending) {
             Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.toAccountNumber);
             UserRecord receiver = receiver_opt.get();
-            TransactionRecord transaction2 = TransactionRecord.builder()
-                    .dateTime(new Date())
-                    .type("credit")
-                    .amount(amount)
-                    .status("success")
-                    .description(desc)
-                    .sourceAccountNumber(destAccount)
-                    .destinationAccountNumber(user.getAccountNumber())
-                    .build();
 
-            receiver.getTransactionRecords().add(transaction2);
+            receiver.setAccountBalance(receiver.getAccountBalance() + amount);
+            receiver.getTransactionRecords().add(transaction);
             userService.updateUser(receiver);
         }
 
@@ -139,6 +140,6 @@ public class DoTransaction {
         response.message = "Transaction successful";
         response.status = "success";
         response.accountBalance = String.valueOf(user.getAccountBalance());
-        return response;
+        return ResponseEntity.ok(response);
     }
 }

@@ -9,8 +9,8 @@ export default function Transactions({ transactions }) {
                     {/* <th>ID</th> */}
                     <th>Type</th>
                     <th>Amount</th>
-                    <th>From</th>
-                    <th>To</th>
+                    <th>Source</th>
+                    <th>Destination</th>
                     <th>Description</th>
                     <th>Status</th>
                 </tr>
@@ -21,8 +21,8 @@ export default function Transactions({ transactions }) {
                         {/* <td>{transaction.transactionId}</td> */}
                         <td>{transaction.type}</td>
                         <td>{transaction.amount}</td>
+                        <td>{transaction.sourceAccountNumber || "-"}</td>
                         <td>{transaction.destinationAccountNumber || "-"}</td>
-                        <td>{transaction.sourceAccountNumber}</td>
                         <td>{transaction.description}</td>
                         <td>{transaction.status}</td>
                     </tr>

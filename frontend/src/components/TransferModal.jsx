@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "react-router-dom";
 
-export default function DepositModal({ open, setOpen }) {
+export default function TransferModal({ open, setOpen }) {
     const [ amount, setAmount ] = useState(0);
+    const [ accountNumber, setAccountNumber ] = useState('');
     const [ loading, setLoading ] = useState(false);
+    const [ error, setError ] = useState('');
 
-    const doDeposit = async () => {
+    useEffect(() => {
+        setError('');
+    }, []);
+
+    const doTransfer = async () => {
         setLoading(true);
         try {
             const url = '/api/transactions/create';
@@ -16,12 +22,14 @@ export default function DepositModal({ open, setOpen }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    toAccountNumber: '',
+                    toAccountNumber: accountNumber,
                     transactionAmount: amount,
-                    transactionType: 'deposit',
+                    transactionType: 'transfer',
                 }),
             });
             if (response.status != 200) {
+                const errMsg = await response.json();
+                setError(errMsg.message);
                 throw Error('Failed to deposit');
             }
             const res = await response.json();
@@ -37,16 +45,29 @@ export default function DepositModal({ open, setOpen }) {
             <input type="checkbox" id="deposit-modal" className="modal-toggle" checked={open} readOnly />
             <div className="modal">
                 <div className="modal-box">
-                    <h3 className="font-bold text-lg">Deposit!</h3>
-                    <p className="py-4">Enter the amount to deposit:</p>
-                    <div className="flex items-center justify-center">
+                    <h3 className="font-bold text-lg">Transfer!</h3>
+                    <p className="py-4">Enter the account and amount to transfer:</p>
+                    <p className="text-red-500">{error}</p>
+                    <div className="flex flex-col items-center justify-center">
                         <div className="form-control max-w-xs">
                             <label className="label">
-                                <span className="label-text">Deposit amount</span>
+                                <span className="label-text">Account number</span>
+                            </label>
+                            <input
+                                placeholder="Account number"
+                                className={"input input-bordered max-w-xs" + (loading ? ' input-disabled' : '')}
+                                name="amount"
+                                value={accountNumber}
+                                onChange={(e) => setAccountNumber(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-control max-w-xs">
+                            <label className="label">
+                                <span className="label-text">Transfer amount</span>
                             </label>
                             <input
                                 type="number"
-                                placeholder="Type here"
+                                placeholder="Amount"
                                 className={"input input-bordered max-w-xs" + (loading ? ' input-disabled' : '')}
                                 name="amount"
                                 value={amount}
@@ -56,7 +77,7 @@ export default function DepositModal({ open, setOpen }) {
                     </div>
                     <div className="modal-action">
                         {/* <label htmlFor="deposit-modal" className="btn">Ok</label> */}
-                        <button className="btn" onClick={doDeposit}>Ok</button>
+                        <button className="btn" onClick={doTransfer}>Ok</button>
                         <button className="btn" onClick={() => setOpen(false)}>cancel</button>
                     </div>
                 </div>
