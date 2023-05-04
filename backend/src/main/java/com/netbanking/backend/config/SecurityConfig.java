@@ -43,6 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests((authz) -> authz
                 .requestMatchers("/api/account/**").authenticated()
                 .requestMatchers("/api/transactions/**").authenticated()
+                .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().permitAll()
             )
             .csrf().disable()

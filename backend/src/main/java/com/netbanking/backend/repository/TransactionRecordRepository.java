@@ -4,7 +4,6 @@ import com.netbanking.backend.model.TransactionRecord;
 import com.netbanking.backend.model.UserRecord;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import com.netbanking.backend.model.UserRecord;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;

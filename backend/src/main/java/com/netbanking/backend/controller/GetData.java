@@ -1,6 +1,5 @@
 package com.netbanking.backend.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,53 +17,35 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netbanking.backend.dto.DTOConverter;
 import com.netbanking.backend.dto.UserDTO;
+import com.netbanking.backend.model.TaskRecord;
 import com.netbanking.backend.model.TransactionRecord;
 import com.netbanking.backend.model.UserRecord;
 import com.netbanking.backend.security.PasswordEncoder;
 import com.netbanking.backend.security.UserDetailsImpl;
-import com.netbanking.backend.service.TransactionsService;
+import com.netbanking.backend.service.TaskService;
 import com.netbanking.backend.service.UserService;
 
 import ch.qos.logback.classic.Logger;
 
 @RestController
-@RequestMapping("/api/account")
-public class Account {
+public class GetData {
     
     @Autowired
-    private UserService userService;
+    private TaskService taskService;
 
-    @Autowired
-    private TransactionsService transactionService;
+    private Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(GetData.class);
 
-    private Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(Account.class);
-
-    @GetMapping("/get")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public UserDTO getUserByToken() {
-        
+    @GetMapping("/api/admin/getTasks")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public List<TaskRecord> getPendingTasks() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        UserRecord user = userDetails.getUser();
-        UserDTO userDTO = DTOConverter.from(user);
-        return userDTO;
-    }
+        // UserRecord user = userDetails.getUser();
 
-    @GetMapping("/transactions")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public List<TransactionRecord> getTransactions() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-        UserRecord user = userDetails.getUser();
-
-        List<String> ids = user.getTransactionRecords();
-        List<TransactionRecord> list = new ArrayList<>();
-        for (String id : ids) {
-            TransactionRecord transaction = transactionService.getTransactionById(id);
-            list.add(transaction);
-        }
+        List<TaskRecord> list = taskService.getAllPendingTask();
+        logger.error("list: " + list);
         return list;
     }
 }

@@ -34,7 +34,7 @@ export default function TransferModal({ open, setOpen }) {
             }
             const res = await response.json();
             console.log(res)
-            setOpen(false);
+            setOpen(false, res.pending);
         } finally {
             setLoading(false);
         }

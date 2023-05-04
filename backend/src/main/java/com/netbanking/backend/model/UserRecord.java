@@ -29,5 +29,5 @@ public class UserRecord {
     private String address;
     private String ssn;
     private String userToken;
-    private List<TransactionRecord> transactionRecords;
+    private List<String> transactionRecords;
 }

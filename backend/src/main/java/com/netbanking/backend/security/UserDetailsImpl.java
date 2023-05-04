@@ -22,6 +22,7 @@ public class UserDetailsImpl implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
         if (user.isAdmin()) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         } else {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));

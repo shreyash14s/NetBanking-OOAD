@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import './Dashboard.css';
 import Transactions from "../components/Transactions";
 import DepositModal from "../components/DepositModal";
 import TransferModal from "../components/TransferModal";
+import AlertModal from "../components/AlertModal";
 
 // export async function userLoader({ request, params }) {
 //   // const taskId = params.taskId;
@@ -19,6 +20,7 @@ export function Dashboard() {
     const [ transactions, setTransactions ] = useState(null);
     const [ openDespositModal, setOpenDepositModal ] = useState(false);
     const [ openTransferModal, setOpenTransferModal ] = useState(false);
+    const [ openAlertModal, setOpenAlertModal ] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -27,6 +29,24 @@ export function Dashboard() {
             navigate('/login-redirect');
         }
     }, [user, navigate]);
+
+    const setDepositOpen = useCallback((open) => {
+        // setOpenDepositModal(open);
+        navigate('/login-redirect');
+    }, [navigate]);
+
+    const setTransferOpen = useCallback((open, pending) => {
+        // setOpenTransferModal(open);
+        if (pending) {
+            setOpenAlertModal(true);
+        } else {
+            navigate('/login-redirect');
+        }
+    }, [navigate]);
+
+    const setAlertOpen = useCallback((open) => {
+        navigate('/login-redirect');
+    }, [navigate]);
 
     return (
         <div className="max-w-full full-width">
@@ -47,8 +67,9 @@ export function Dashboard() {
                     </div>
                 </div>
             </div>
-            <DepositModal open={openDespositModal} setOpen={setOpenDepositModal} />
-            <TransferModal open={openTransferModal} setOpen={setOpenTransferModal} />
+            <DepositModal open={openDespositModal} setOpen={setDepositOpen} />
+            <TransferModal open={openTransferModal} setOpen={setTransferOpen} />
+            <AlertModal open={openAlertModal} setOpen={setAlertOpen} />
         </div>
     );
 }

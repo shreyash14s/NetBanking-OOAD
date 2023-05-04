@@ -17,6 +17,7 @@ public class DTOConverter {
         dto.setAddress(record.getAddress());
         dto.setSsn(record.getSsn());
         dto.setUserToken(record.getUserToken());
+        dto.setAdmin(record.isAdmin());
         return dto;
     }
 }

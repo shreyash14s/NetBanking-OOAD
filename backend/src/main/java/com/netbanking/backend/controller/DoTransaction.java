@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netbanking.backend.model.TaskRecord;
 import com.netbanking.backend.model.TransactionRecord;
 import com.netbanking.backend.model.UserRecord;
 import com.netbanking.backend.security.UserDetailsImpl;
+import com.netbanking.backend.service.TaskService;
 import com.netbanking.backend.service.TransactionsService;
 import com.netbanking.backend.service.UserService;
 
@@ -35,6 +37,7 @@ class TransactionResponse {
     public String message;
     public String status;
     public String accountBalance;
+    public boolean pending;
 }
 
 @RestController
@@ -46,6 +49,9 @@ public class DoTransaction {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TaskService taskService;
     
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -123,14 +129,29 @@ public class DoTransaction {
         
         transactionsService.addTransaction(transaction);
         
-        user.getTransactionRecords().add(transaction);
+        user.getTransactionRecords().add(transaction.getTransactionId());
 
-        if (request.transactionType.equals("transfer") && !pending) {
+        if (pending) {
+            TaskRecord task = TaskRecord.builder()
+                .description("Transfer " + amount + " from " + user.getAccountNumber() + " to " + request.toAccountNumber)
+                .type("approveTransaction")
+                .status("pending")
+                .done(false)
+                .userEmail(user.getUserEmail())
+                .transactionId(transaction.getTransactionId())
+                .build();
+
+            taskService.addTask(task);
+        }
+
+        if (request.transactionType.equals("transfer")) {
             Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.toAccountNumber);
             UserRecord receiver = receiver_opt.get();
 
-            receiver.setAccountBalance(receiver.getAccountBalance() + amount);
-            receiver.getTransactionRecords().add(transaction);
+            if (!pending) {
+                receiver.setAccountBalance(receiver.getAccountBalance() + amount);
+            }
+            receiver.getTransactionRecords().add(transaction.getTransactionId());
             userService.updateUser(receiver);
         }
 
@@ -140,6 +161,7 @@ public class DoTransaction {
         response.message = "Transaction successful";
         response.status = "success";
         response.accountBalance = String.valueOf(user.getAccountBalance());
+        response.pending = pending;
         return ResponseEntity.ok(response);
     }
 }

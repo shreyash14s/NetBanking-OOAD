@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,12 +25,15 @@ public class NBUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRecordRepository userRepository;
 
+    private Logger logger = LoggerFactory.getLogger(NBUserDetailsService.class);
+
     @Override
     public UserDetailsImpl loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserRecord> opt_user = userRepository.findUserByEmail(username);
         if (opt_user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
+        // logger.info("User found: " + opt_user.get().toString());
         UserRecord user = opt_user.get();
         return new UserDetailsImpl(user);
     }

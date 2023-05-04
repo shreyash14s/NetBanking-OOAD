@@ -9,6 +9,7 @@ import { UserProvider } from './context/UserContext';
 import { Dashboard } from './pages/Dashboard';
 import { LoginRedirect } from './pages/LoginRedirect';
 import { TransactionsPage, transactionLoader } from './pages/TransactionPage';
+import { Admin } from './pages/Admin';
 
 function Root() {
     const navigation = useNavigation();
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
                 path: "transactions",
                 element: <TransactionsPage />,
                 loader: transactionLoader
+            },
+            {
+                path: "admin",
+                element: <Admin />
             },
             {
                 path: "*",
