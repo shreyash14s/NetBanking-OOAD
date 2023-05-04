@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.netbanking.backend.model.TransactionRecord;
 import com.netbanking.backend.model.UserRecord;
+import com.netbanking.backend.security.UserDetailsImpl;
 import com.netbanking.backend.service.TransactionsService;
 import com.netbanking.backend.service.UserService;
 
 
 class TransactionRequest {
-    public String userToken;
-    public String accountNumber;
+    public String toAccountNumber;
     public String transactionAmount;
     public String transactionType;
     // public String transactionDescription;
@@ -34,8 +35,7 @@ class TransactionResponse {
 }
 
 @RestController
-@RequestMapping("/transactions")
-// @CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("/api/transactions")
 public class DoTransaction {
 
     @Autowired
@@ -44,31 +44,13 @@ public class DoTransaction {
     @Autowired
     private UserService userService;
     
-    // @GetMapping("/transactions")
-    // public List<TransactionRecord> getAllTransactions(){
-    //     return transactionsService.getAllTransactions();
-    // }
-    
-    // @GetMapping("/transactions/{id}")
-    // public Transactions getTransaction(@PathVariable int id) {
-    //     return transactionsService.getTransaction(id);
-    // }
-    
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public TransactionResponse doTransaction(@RequestBody TransactionRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        String email = userDetails.getUsername();
-
-        Optional<UserRecord> user_opt = userService.getUserByEmail(email);
-        if (user_opt.isEmpty()) {
-            TransactionResponse response = new TransactionResponse();
-            response.message = "Invalid login details";
-            response.status = "error";
-            return response;
-        }
-        UserRecord user = user_opt.get();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        UserRecord user = userDetails.getUser();
 
         int amount = 0;
         try {
@@ -85,7 +67,7 @@ public class DoTransaction {
         String destAccount = "";
 
         if (request.transactionType.equals("debit")) {
-            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.accountNumber);
+            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.toAccountNumber);
             if (receiver_opt.isEmpty()) {
                 TransactionResponse response = new TransactionResponse();
                 response.message = "Invalid account number";
@@ -121,28 +103,30 @@ public class DoTransaction {
         }
 
         TransactionRecord transaction = TransactionRecord.builder()
-            .transactionDateTime(new Date())
-            .transactionType(request.transactionType)
-            .transactionAmount(amount)
-            .transactionStatus(pending ? "pending" : "success")
-            .transactionDescription(desc)
-            .transactionSourceAccountNumber(user.getAccountNumber())
-            .transactionDestinationAccountNumber(destAccount)
+            .dateTime(new Date())
+            .type(request.transactionType)
+            .amount(amount)
+            .status(pending ? "pending" : "success")
+            .description(desc)
+            .sourceAccountNumber(user.getAccountNumber())
+            .destinationAccountNumber(destAccount)
             .build();
+        
+        transactionsService.addTransaction(transaction);
         
         user.getTransactionRecords().add(transaction);
 
         if (request.transactionType.equals("debit") && !pending) {
-            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.accountNumber);
+            Optional<UserRecord> receiver_opt = userService.getUserByAccountNumber(request.toAccountNumber);
             UserRecord receiver = receiver_opt.get();
             TransactionRecord transaction2 = TransactionRecord.builder()
-                    .transactionDateTime(new Date())
-                    .transactionType("credit")
-                    .transactionAmount(amount)
-                    .transactionStatus("success")
-                    .transactionDescription(desc)
-                    .transactionSourceAccountNumber(destAccount)
-                    .transactionDestinationAccountNumber(user.getAccountNumber())
+                    .dateTime(new Date())
+                    .type("credit")
+                    .amount(amount)
+                    .status("success")
+                    .description(desc)
+                    .sourceAccountNumber(destAccount)
+                    .destinationAccountNumber(user.getAccountNumber())
                     .build();
 
             receiver.getTransactionRecords().add(transaction2);

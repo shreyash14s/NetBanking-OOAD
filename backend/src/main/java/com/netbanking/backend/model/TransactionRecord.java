@@ -14,12 +14,12 @@ import java.util.UUID;
 @Builder
 public class TransactionRecord {
     @Id
-    private UUID transactionId;
-    private Date transactionDateTime;
-    private String transactionType;
-    private Integer transactionAmount;
-    private String transactionStatus;
-    private String transactionDescription;
-    private String transactionDestinationAccountNumber;
-    private String transactionSourceAccountNumber;
+    private String transactionId;
+    private Date dateTime;
+    private String type;
+    private Integer amount;
+    private String status;
+    private String description;
+    private String destinationAccountNumber;
+    private String sourceAccountNumber;
 }

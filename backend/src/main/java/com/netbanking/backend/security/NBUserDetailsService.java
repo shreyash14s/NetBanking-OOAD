@@ -24,27 +24,24 @@ public class NBUserDetailsService implements UserDetailsService {
     private UserRecordRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetailsImpl loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserRecord> opt_user = userRepository.findUserByEmail(username);
         if (opt_user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
         UserRecord user = opt_user.get();
-        return new User(username, user.getUserPassword(),
-                true, true, true, true,
-                // null);
-                getAuthorities());
+        return new UserDetailsImpl(user);
     }
 
-    private static List<GrantedAuthority> getAuthorities() {
-        // List<GrantedAuthority> authorities = new ArrayList<>();
-        // for (String role : roles) {
-        //     authorities.add(new SimpleGrantedAuthority(role));
-        // }
-        // return authorities;
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        return authorities;
-    }
+    // private static List<GrantedAuthority> getAuthorities() {
+    //     // List<GrantedAuthority> authorities = new ArrayList<>();
+    //     // for (String role : roles) {
+    //     //     authorities.add(new SimpleGrantedAuthority(role));
+    //     // }
+    //     // return authorities;
+    //     List<GrantedAuthority> authorities = new ArrayList<>();
+    //     authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+    //     return authorities;
+    // }
     
 }

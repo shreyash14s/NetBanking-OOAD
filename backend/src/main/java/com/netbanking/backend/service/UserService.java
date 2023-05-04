@@ -1,5 +1,6 @@
 package com.netbanking.backend.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,12 +49,17 @@ public class UserService {
         String accountNumber;
         do {
             accountNumber = String.format("1%010d", (int)(Math.random() * 1000000000));
-        } while (getUserByAccountNumber(accountNumber) != null);
+        } while (getUserByAccountNumber(accountNumber).isPresent());
 
         UserRecord user = UserRecord.builder()
             .userEmail(email)
             .userPassword(passwordEncoder.encode(password))
             .userName(name)
+            .accountNumber(accountNumber)
+            .accountBalance(0)
+            .accountStatus("pending")
+            .accountCreationDate(new Date())
+            .transactionRecords(List.of())
             .build();
         
         return userRepository.save(user);

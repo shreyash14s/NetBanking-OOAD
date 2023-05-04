@@ -11,10 +11,10 @@ import java.util.List;
 
 @Document("userRecord")
 @Data
-@Builder
+@Builder(toBuilder = true)
 public class UserRecord {
-    // @Id
-    // private long id;
+    @Id
+    private String _id;
     private String userName;
     private String userEmail;
     private String userPassword;
@@ -23,6 +23,7 @@ public class UserRecord {
     private Integer accountBalance;
     private String accountStatus;
     private Date accountCreationDate;
+    private boolean isAdmin;
     private String phone;
     private String dob;
     private String address;

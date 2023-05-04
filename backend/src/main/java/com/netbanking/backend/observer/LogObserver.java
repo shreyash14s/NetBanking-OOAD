@@ -15,6 +15,6 @@ public class LogObserver {
 
     @EventListener
     public void handleNewTransactions(final NewTransactionEvent event) {
-        logService.addLog("New transaction: " + event.getTransactionRecord().getTransactionType());
+        logService.addLog("New transaction: " + event.getTransactionRecord().getType());
     }
 }

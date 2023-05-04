@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.netbanking.backend.security.JwtUtils;
+import com.netbanking.backend.security.UserDetailsImpl;
 import com.netbanking.backend.service.SessionManager;
 
 class LoginRequest {
@@ -26,6 +27,7 @@ class LoginRequest {
 
 class LoginResponse {
     public String token;
+    public boolean isAdmin;
     public String message;
     public String status;
 }
@@ -41,9 +43,6 @@ public class Login {
 
     Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger(Login.class);
 
-    @Autowired
-    private SessionManager sessionManager;
-
     @PostMapping("/api/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         // try {
@@ -53,6 +52,8 @@ public class Login {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = jwtUtils.generateJwtToken(authentication);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         // UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         // List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
@@ -78,6 +79,7 @@ public class Login {
 
         LoginResponse response = new LoginResponse();
         response.token = jwt;
+        response.isAdmin = userDetails.getUser().isAdmin();
         response.message = "Login successful";
         response.status = "success";
 

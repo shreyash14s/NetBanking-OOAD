@@ -1,5 +1,6 @@
 package com.netbanking.backend.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netbanking.backend.dto.DTOConverter;
+import com.netbanking.backend.dto.UserDTO;
+import com.netbanking.backend.model.TransactionRecord;
 import com.netbanking.backend.model.UserRecord;
 import com.netbanking.backend.security.PasswordEncoder;
+import com.netbanking.backend.security.UserDetailsImpl;
 import com.netbanking.backend.service.UserService;
 
 import ch.qos.logback.classic.Logger;
@@ -31,20 +36,24 @@ public class Account {
 
     @GetMapping("/get")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public UserRecord getUserByToken() {
+    public UserDTO getUserByToken() {
         
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        String username = userDetails.getUsername();
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        UserRecord user = userDetails.getUser();
+        UserDTO userDTO = DTOConverter.from(user);
+        return userDTO;
+    }
 
-        Optional<UserRecord> user_opt = userService.getUserByEmail(username);
-        if (user_opt.isEmpty()) {
-            logger.warn("User not found");
-            return null;
-        }
-        UserRecord user = user_opt.get();
-        user.setUserPassword("");
-        return user;
+    @GetMapping("/transactions")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public List<TransactionRecord> getTransactions() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        UserRecord user = userDetails.getUser();
+
+        return user.getTransactionRecords();
     }
 }

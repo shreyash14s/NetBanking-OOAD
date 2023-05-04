@@ -1,5 +1,7 @@
 package com.netbanking.backend.controller;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.netbanking.backend.model.UserRecord;
 import com.netbanking.backend.service.UserService;
 
 class CreateAccountRequest {
@@ -32,7 +35,8 @@ public class CreateAccount {
     public CreateAccountResponse createAccount(@RequestBody CreateAccountRequest request) {
         logger.error("Creating account for " + request.email);
         CreateAccountResponse response = new CreateAccountResponse();
-        if (userService.getUserByEmail(request.email) != null) {
+        Optional<UserRecord> user = userService.getUserByEmail(request.email);
+        if (user.isPresent()) {
             response.message = "User already exists";
             response.status = "error";
             return response;
